@@ -29,7 +29,7 @@ public class Swagger2Config {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("消防系统后端接口")
+                .title("Level 6 Shift Interface")
                 .description("")
                 .termsOfServiceUrl("")
                 .version("1.0.0")
