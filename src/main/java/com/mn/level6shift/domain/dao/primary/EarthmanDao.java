@@ -23,4 +23,6 @@ public interface EarthmanDao extends JpaRepository<Earthman, String> {
     List<Earthman> findAll(Specification<Earthman> querySpec, Sort sort);
 
     Page<Earthman> findAll(Specification<Earthman> querySpec, Pageable pageable);
+
+    List<Earthman> findByCodeLikeOrderByCodeDesc(String code);
 }

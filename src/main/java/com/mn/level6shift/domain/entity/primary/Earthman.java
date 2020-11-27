@@ -33,6 +33,9 @@ public class Earthman {
     private String id = UUID.randomUUID().toString().replace("-", "");
 
     @Column
+    private String code;
+
+    @Column
     private String name;
 
     @Column
@@ -44,7 +47,8 @@ public class Earthman {
     @Column
     private boolean delFlag;
 
-    public Earthman(String name) {
+    public Earthman(String code, String name) {
+        this.code = code;
         this.name = name;
     }
 

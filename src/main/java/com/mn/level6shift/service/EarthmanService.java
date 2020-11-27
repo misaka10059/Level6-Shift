@@ -1,10 +1,12 @@
 package com.mn.level6shift.service;
 
 import com.google.gson.reflect.TypeToken;
+import com.mn.level6shift.component.util.TimeUtil;
 import com.mn.level6shift.domain.dao.primary.EarthmanDao;
 import com.mn.level6shift.domain.dao.primary.EarthmanDaoSpec;
 import com.mn.level6shift.domain.entity.primary.Earthman;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -28,13 +30,52 @@ public class EarthmanService {
     @Autowired
     private EarthmanDao earthmanDao;
 
+    private String generateCodePrefix() {
+        return "E" + TimeUtil.getFormatTime(TimeUtil.UnitOfTimeMeasurement.YEAR) + TimeUtil.getFormatTime(TimeUtil.UnitOfTimeMeasurement.MONTH);
+    }
+
+    private String getFormatNumber(int number) {
+        StringBuilder result = new StringBuilder(String.valueOf(number));
+        while (result.length() < 5) {
+            result.insert(0, "0");
+        }
+        return result.toString();
+    }
+
+    private String generateCode() {
+        String latestCode;
+        String newCode;
+        String codePrefix = generateCodePrefix();
+        int number = 1;
+        List<Earthman> list = earthmanDao.findByCodeLikeOrderByCodeDesc("%" + codePrefix + "%");
+        if (null != list && list.size() > 0) {
+            latestCode = list.get(0).getCode();
+            number = Integer.valueOf(latestCode.substring(latestCode.length() - 5)) + 1;
+            newCode = codePrefix + getFormatNumber(number);
+        } else {
+            newCode = codePrefix + getFormatNumber(number);
+        }
+        return newCode;
+    }
+
     /**
      * DATE 2020/10/30 11:39
      * DESC
      */
+//    @Transactional
     public Earthman add(String name) {
-        Earthman earthman = new Earthman(name);
-        return earthmanDao.save(earthman);
+        String code = generateCode();
+        Earthman earthman = new Earthman(code, name);
+        Earthman insertEarthman;
+        try {
+            insertEarthman = earthmanDao.save(earthman);
+        } catch (DataAccessException e) {
+            code = generateCode();
+            earthman = new Earthman(code, name);
+            insertEarthman = earthmanDao.save(earthman);
+        }
+        return insertEarthman;
+//        return earthmanDao.save(earthman);
     }
 
     /**
@@ -74,7 +115,7 @@ public class EarthmanService {
 
     /**
      * DATE 2020/11/25 10:10
-     * DESC JDBC中通过like排序
+     * DESC JDBC中排序，通过like
      */
     public List<Earthman> listSortedPattern3(String name) {
         return earthmanDao.findAllByNameLikeOrderByNameDesc("%" + name + "%");
@@ -97,7 +138,7 @@ public class EarthmanService {
 
     public void doIt() {
         Hello hello = new Hello();
-        hello.setMessage("fajofajo");
+        hello.setMessage("Can I do?");
         hello.setFruit(Fruit.APPLE);
         Type type = new TypeToken<Fruit>() {
         }.getType();
